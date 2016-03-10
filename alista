@@ -1,0 +1,67 @@
+--[[
+	Alistar Combo v1.2 by eXtragoZ
+  
+		It requires the AllClass Library
+
+	-Full combo: W -> Q
+	-Marks the target
+	-Target configuration
+	-Press shift to configure
+]]
+if myHero.charName ~= "Alistar" then return end
+require "AllClass"
+--[[		Config		]]  
+local HK = 32 -- spacebar
+local drawcircles = true
+local tablex = 5
+local tabley = 300
+local UIHK = 16 --shift
+--[[		Code		]]
+local range = 600
+-- Active
+local scriptActive = false
+-- draw
+local moveui = false
+-- ts
+local ts
+--
+
+function OnLoad()
+	ts = TargetSelector(TARGET_LOW_HP,range,DAMAGE_MAGIC)
+end
+
+function OnTick()
+	ts:update()
+	if scriptActive and ts.target ~= nil and myHero:CanUseSpell(_Q) == READY and myHero:CanUseSpell(_W) == READY and GetDistance(ts.target)<=range then
+		CastSpell(_W,ts.target)
+		CastSpell(_Q)
+	end
+end
+
+function OnDraw()
+	if drawcircles and not myHero.dead then
+		DrawCircle(myHero.x, myHero.y, myHero.z, range, 0x19A712)
+		if ts.target ~= nil then
+			for j=0, 15 do
+				DrawCircle(ts.target.x, ts.target.y, ts.target.z, 40 + j*1.5, 0x00FF00)
+			end
+		end
+	end
+	if moveui then tablex,tabley = GetCursorPos().x-100,GetCursorPos().y+11 end
+	if IsKeyDown(UIHK) then
+		DrawText("///////Alistar Combo 1.2///////", 20, tablex, tabley-21, 0xFFfff600)
+		local newY = TS__DrawMenu(tablex, tabley)
+		newY = ts:DrawMenu(tablex, newY, "pri")
+	end
+end
+
+function OnWndMsg(msg,key)
+	if key == HK then scriptActive = (msg == KEY_DOWN) end
+	if msg == WM_LBUTTONUP or not IsKeyDown(UIHK) then moveui = false end
+	if msg == WM_LBUTTONDOWN and IsKeyDown(UIHK) then
+		if CursorIsUnder(tablex, tabley-21, 200, 18) then moveui = true end
+		local newY = TS_ClickMenu(tablex, tabley)
+		newY = ts:ClickMenu(tablex, newY)
+	end
+end
+PrintChat(" >> Alistar Combo 1.2 loaded!")
